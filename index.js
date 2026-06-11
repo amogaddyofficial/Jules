@@ -1,5 +1,4 @@
 const { Client, GatewayIntentBits, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder } = require('discord.js');
-const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -19,6 +18,33 @@ let botStartTime = Date.now();
 let totalCommands = 0;
 let totalErrors = 0;
 
+// ========== SISTEMA DI LOG ==========
+const logs = [];
+const MAX_LOGS = 500;
+
+function addLog(message, type = 'info') {
+  const timestamp = new Date().toISOString();
+  const logEntry = {
+    timestamp,
+    type, // 'info', 'error', 'success', 'warning'
+    message
+  };
+  
+  logs.push(logEntry);
+  if (logs.length > MAX_LOGS) {
+    logs.shift();
+  }
+  
+  const prefix = {
+    'info': '📝',
+    'error': '❌',
+    'success': '✓',
+    'warning': '⚠️'
+  }[type] || '•';
+  
+  console.log(`[${timestamp}] ${prefix} ${message}`);
+}
+
 // ========== UTILITY FUNCTIONS ==========
 
 /**
@@ -30,7 +56,7 @@ function loadDatabase() {
       return JSON.parse(fs.readFileSync(DATABASE_PATH, 'utf8'));
     }
   } catch (error) {
-    console.error('Errore nel caricamento del database:', error);
+    addLog(`Errore nel caricamento del database: ${error.message}`, 'error');
     totalErrors++;
   }
   return {
@@ -40,49 +66,22 @@ function loadDatabase() {
       ownerRoleId: null
     },
     partnerships: {},
-    lastSync: new Date().toISOString()
+    lastUpdate: new Date().toISOString()
   };
 }
 
 /**
- * Salva il database nel file JSON
+ * Salva il database nel file JSON (locale solamente)
  */
 function saveDatabase(data) {
   try {
-    data.lastSync = new Date().toISOString();
+    data.lastUpdate = new Date().toISOString();
     fs.writeFileSync(DATABASE_PATH, JSON.stringify(data, null, 2));
-    console.log('✓ Database salvato localmente');
+    addLog('Database salvato', 'success');
   } catch (error) {
-    console.error('Errore nel salvataggio del database:', error);
+    addLog(`Errore nel salvataggio del database: ${error.message}`, 'error');
     totalErrors++;
   }
-}
-
-/**
- * Sincronizza il database con GitHub (backup automatico)
- */
-function syncToGitHub() {
-  return new Promise((resolve) => {
-    const commands = [
-      `git add database.json`,
-      `git commit -m "Backup automatico database - ${new Date().toISOString()}"`,
-      `git push origin ${process.env.GIT_BRANCH || 'main'}`
-    ];
-
-    exec(commands.join(' && '), (error, stdout, stderr) => {
-      if (error) {
-        if (error.message.includes('nothing to commit')) {
-          console.log('✓ Nessun cambiamento da sincronizzare');
-        } else {
-          console.error('Errore nella sincronizzazione con GitHub:', error);
-          totalErrors++;
-        }
-      } else {
-        console.log('✓ Database sincronizzato con GitHub');
-      }
-      resolve();
-    });
-  });
 }
 
 /**
@@ -133,7 +132,7 @@ function getStats() {
     users: client.users.cache.size,
     partnersCount: partnershipsCount,
     totalPartnerships: totalPartnerships,
-    lastSync: db.lastSync,
+    lastUpdate: db.lastUpdate,
     configStatus: db.config.partnershipChannelId ? 'Configurato ✓' : 'Non configurato ✗',
     memoryUsage: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2) + ' MB',
     nodeVersion: process.version
@@ -150,7 +149,18 @@ app.use(express.static('public'));
  */
 app.get('/', (req, res) => {
   const stats = getStats();
-  res.render('index', { stats });
+  res.render('index', { stats, logs });
+});
+
+/**
+ * API Logs in JSON
+ */
+app.get('/api/logs', (req, res) => {
+  res.json({
+    logs: logs,
+    totalLogs: logs.length,
+    timestamp: new Date().toISOString()
+  });
 });
 
 /**
@@ -179,7 +189,7 @@ app.get('/health', (req, res) => {
 // ========== BOT EVENT LISTENERS ==========
 
 client.on('ready', () => {
-  console.log(`✓ Bot loggato come ${client.user.tag}`);
+  addLog(`Bot loggato come ${client.user.tag}`, 'success');
   botStartTime = Date.now();
   client.user.setActivity('/setup per configurare il bot', { type: 'WATCHING' });
 });
@@ -191,10 +201,13 @@ client.on('interactionCreate', async (interaction) => {
       totalCommands++;
       const db = loadDatabase();
       const { commandName } = interaction;
+      
+      addLog(`Comando eseguito: /${commandName} da ${interaction.user.username}`, 'info');
 
       // ========== /setup ==========
       if (commandName === 'setup') {
         if (!interaction.member.permissions.has('Administrator')) {
+          addLog(`${interaction.user.username} ha tentato /setup senza permessi`, 'warning');
           return interaction.reply({
             content: '❌ Solo gli Amministratori possono eseguire questo comando.',
             ephemeral: true
@@ -206,7 +219,7 @@ client.on('interactionCreate', async (interaction) => {
         db.config.ownerRoleId = interaction.options.getRole('owner_role').id;
 
         saveDatabase(db);
-        await syncToGitHub();
+        addLog(`Bot configurato da ${interaction.user.username}`, 'success');
 
         const embed = new EmbedBuilder()
           .setColor(0x00FF00)
@@ -224,6 +237,7 @@ client.on('interactionCreate', async (interaction) => {
       // ========== /partnership ==========
       if (commandName === 'partnership') {
         if (!db.config.partnershipChannelId) {
+          addLog('Tentativo /partnership senza configurazione', 'warning');
           return interaction.reply({
             content: '❌ Il bot non è stato configurato. Esegui `/setup` prima.',
             ephemeral: true
@@ -231,6 +245,7 @@ client.on('interactionCreate', async (interaction) => {
         }
 
         if (!hasRole(interaction.member, db.config.partnerManagerRoleId)) {
+          addLog(`${interaction.user.username} ha tentato /partnership senza ruolo`, 'warning');
           return interaction.reply({
             content: '❌ Non hai il ruolo di Partner Manager per usare questo comando.',
             ephemeral: true
@@ -261,6 +276,8 @@ client.on('interactionCreate', async (interaction) => {
         const userId = user.id;
         const count = db.partnerships[userId]?.count || 0;
 
+        addLog(`Conteggio partnership richiesto per ${user.username}: ${count}`, 'info');
+
         const embed = new EmbedBuilder()
           .setColor(0x0099FF)
           .setTitle('📊 Conteggio Partnership')
@@ -277,6 +294,7 @@ client.on('interactionCreate', async (interaction) => {
         const isPartnerManager = hasRole(interaction.member, db.config.partnerManagerRoleId);
 
         if (!isOwner && !isPartnerManager) {
+          addLog(`${interaction.user.username} ha tentato /addpartnership senza permessi`, 'warning');
           return interaction.reply({
             content: '❌ Solo Owner e Partner Manager possono usare questo comando.',
             ephemeral: true
@@ -293,7 +311,7 @@ client.on('interactionCreate', async (interaction) => {
 
         db.partnerships[userId].count += amount;
         saveDatabase(db);
-        await syncToGitHub();
+        addLog(`Partnership aggiunte a ${user.username}: +${amount}`, 'success');
 
         const embed = new EmbedBuilder()
           .setColor(0x00AA00)
@@ -310,6 +328,7 @@ client.on('interactionCreate', async (interaction) => {
         const isPartnerManager = hasRole(interaction.member, db.config.partnerManagerRoleId);
 
         if (!isOwner && !isPartnerManager) {
+          addLog(`${interaction.user.username} ha tentato /removepartnership senza permessi`, 'warning');
           return interaction.reply({
             content: '❌ Solo Owner e Partner Manager possono usare questo comando.',
             ephemeral: true
@@ -330,7 +349,7 @@ client.on('interactionCreate', async (interaction) => {
         const newCount = Math.max(0, db.partnerships[userId].count - amount);
         db.partnerships[userId].count = newCount;
         saveDatabase(db);
-        await syncToGitHub();
+        addLog(`Partnership rimosse da ${user.username}: -${amount}`, 'success');
 
         const embed = new EmbedBuilder()
           .setColor(0xAA0000)
@@ -352,6 +371,7 @@ client.on('interactionCreate', async (interaction) => {
 
         const channel = interaction.guild.channels.cache.get(db.config.partnershipChannelId);
         if (!channel) {
+          addLog('Canale partnership non trovato', 'error');
           return interaction.reply({
             content: '❌ Canale partnership non trovato. Contatta un amministratore.',
             ephemeral: true
@@ -373,7 +393,7 @@ client.on('interactionCreate', async (interaction) => {
         db.partnerships[userId].count += 1;
 
         saveDatabase(db);
-        await syncToGitHub();
+        addLog(`Partnership pubblicata da ${interaction.user.username}`, 'success');
 
         return interaction.reply({
           content: `✓ Partnership pubblicata! Totale: **${db.partnerships[userId].count}**`,
@@ -382,7 +402,7 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
   } catch (error) {
-    console.error('Errore nell\'elaborazione dell\'interazione:', error);
+    addLog(`Errore nell'elaborazione dell'interazione: ${error.message}`, 'error');
     totalErrors++;
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({ content: '❌ Errore nell\'elaborazione della richiesta.', ephemeral: true });
@@ -394,9 +414,9 @@ client.on('interactionCreate', async (interaction) => {
 
 // ========== REGISTRAZIONE SLASH COMMANDS ==========
 client.on('ready', async () => {
-  const guild = client.guilds.cache.get(process.env.GUILD_ID);
+  const guild = client.guilds.cache.first();
   if (!guild) {
-    console.error('Guild non trovata. Verifica GUILD_ID nel file .env');
+    addLog('Nessun server trovato. Assicurati che il bot sia nel server.', 'error');
     return;
   }
 
@@ -483,30 +503,31 @@ client.on('ready', async () => {
 
   try {
     await guild.commands.set(commands);
-    console.log('✓ Slash commands registrati con successo');
+    addLog('Slash commands registrati con successo', 'success');
   } catch (error) {
-    console.error('Errore nella registrazione dei comandi:', error);
+    addLog(`Errore nella registrazione dei comandi: ${error.message}`, 'error');
     totalErrors++;
   }
 });
 
 // ========== SERVER STARTUP ==========
 const server = app.listen(PORT, () => {
-  console.log(`✓ Server web avviato su porta ${PORT}`);
-  console.log(`📊 Accedi a http://localhost:${PORT} per le statistiche`);
+  addLog(`Server web avviato su porta ${PORT}`, 'success');
+  addLog(`📊 Dashboard: http://localhost:${PORT}`, 'info');
+  addLog(`📋 Logs API: http://localhost:${PORT}/api/logs`, 'info');
 });
 
 // ========== BOT LOGIN ==========
 client.login(process.env.DISCORD_TOKEN).catch(error => {
-  console.error('Errore nel login del bot:', error);
+  addLog(`Errore nel login del bot: ${error.message}`, 'error');
   totalErrors++;
 });
 
 // ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGTERM', () => {
-  console.log('SIGTERM ricevuto, chiusura in corso...');
+  addLog('SIGTERM ricevuto, chiusura in corso...', 'warning');
   server.close(() => {
-    console.log('Server chiuso');
+    addLog('Server chiuso', 'info');
     client.destroy();
     process.exit(0);
   });
