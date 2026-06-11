@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimalsMC Partnership Bot - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+
+        .card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            word-break: break-word;
+        }
+
+        .card .status {
+            font-size: 1.8em;
+            margin-top: 10px;
+        }
+
+        .status.online {
+            color: #10b981;
+        }
+
+        .status.offline {
+            color: #ef4444;
+        }
+
+        .status.configured {
+            color: #10b981;
+        }
+
+        .status.not-configured {
+            color: #f59e0b;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .info-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+
+        .info-item label {
+            display: block;
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-item value {
+            display: block;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            word-break: break-all;
+        }
+
+        .ping-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .ping-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .ping-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .ping-button:active {
+            transform: translateY(0);
+        }
+
+        .last-updated {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤝 AnimalsMC Partnership Bot</h1>
+            <p>Dashboard Statistiche in Tempo Reale</p>
+        </header>
+
+        <div class="ping-section">
+            <h3>Verifica Bot Status</h3>
+            <button class="ping-button" onclick="refreshStats()">🔄 Aggiorna Statistiche</button>
+        </div>
+
+        <div class="dashboard">
+            <!-- Bot Status -->
+            <div class="card">
+                <h2>Stato Bot</h2>
+                <div class="status <%= stats.botStatus.includes('Online') ? 'online' : 'offline' %>">
+                    <%= stats.botStatus %>
+                </div>
+            </div>
+
+            <!-- Uptime -->
+            <div class="card">
+                <h2>Uptime</h2>
+                <div class="value"><%= stats.uptime %></div>
+            </div>
+
+            <!-- Server -->
+            <div class="card">
+                <h2>Server Gestiti</h2>
+                <div class="value"><%= stats.guilds %></div>
+            </div>
+
+            <!-- Utenti -->
+            <div class="card">
+                <h2>Utenti Connessi</h2>
+                <div class="value"><%= stats.users %></div>
+            </div>
+
+            <!-- Comandi Eseguiti -->
+            <div class="card">
+                <h2>Comandi Eseguiti</h2>
+                <div class="value"><%= stats.totalCommands %></div>
+            </div>
+
+            <!-- Errori -->
+            <div class="card">
+                <h2>Errori Totali</h2>
+                <div class="value" style="color: <%= stats.totalErrors > 0 ? '#ef4444' : '#10b981' %>">
+                    <%= stats.totalErrors %>
+                </div>
+            </div>
+
+            <!-- Partner Manager Registrati -->
+            <div class="card">
+                <h2>Partner Manager</h2>
+                <div class="value"><%= stats.partnersCount %></div>
+            </div>
+
+            <!-- Partnership Totali -->
+            <div class="card">
+                <h2>Partnership Registrate</h2>
+                <div class="value"><%= stats.totalPartnerships %></div>
+            </div>
+
+            <!-- Stato Configurazione -->
+            <div class="card">
+                <h2>Configurazione</h2>
+                <div class="status <%= stats.configStatus.includes('Configurato') ? 'configured' : 'not-configured' %>">
+                    <%= stats.configStatus %>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>📊 Informazioni di Sistema</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Memoria Utilizzata</label>
+                    <value><%= stats.memoryUsage %></value>
+                </div>
+                <div class="info-item">
+                    <label>Versione Node.js</label>
+                    <value><%= stats.nodeVersion %></value>
+                </div>
+                <div class="info-item">
+                    <label>Ultimo Sync GitHub</label>
+                    <value><%= new Date(stats.lastSync).toLocaleString('it-IT') %></value>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>AnimalsMC Partnership Bot © 2026 | Sviluppato con ❤️ per la comunità</p>
+        </div>
+
+        <div class="last-updated">
+            <p>Pagina aggiornata: <span id="updateTime"></span></p>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('updateTime').textContent = now.toLocaleString('it-IT');
+        }
+
+        function refreshStats() {
+            location.reload();
+        }
+
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
