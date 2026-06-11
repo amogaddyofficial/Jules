@@ -20,6 +20,9 @@ const HISTORY_MAX_POINTS = parseInt(process.env.HISTORY_MAX_POINTS || '360', 10)
 app.use(express.json());
 app.use(express.static('public'));
 
+// health endpoint
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
+
 // Semplice funzione di parsing: adattala al formato dei tuoi log
 function parseLogLine(line) {
   // Esempio di riga: "[service=svcA] cpu=12.3 mem=45.0 message=..."
