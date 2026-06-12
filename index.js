@@ -10,7 +10,12 @@ const PORT = process.env.PORT || 3000;
 
 // ========== CONFIGURAZIONE BOT ==========
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.MessageContent]
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
 });
 
 const DATABASE_PATH = path.join(__dirname, 'database.json');
@@ -44,6 +49,88 @@ function addLog(message, type = 'info') {
   
   console.log(`[${timestamp}] ${prefix} ${message}`);
 }
+
+// ========== COSTANTI E CONFIGURAZIONI ==========
+const SLASH_COMMANDS = [
+  {
+    name: 'setup',
+    description: 'Configura il bot (solo Amministratori)',
+    options: [
+      {
+        name: 'partnership_channel',
+        description: 'Canale dove inviare le partnership',
+        type: 7,
+        required: true
+      },
+      {
+        name: 'partner_manager_role',
+        description: 'Ruolo dei Partner Manager',
+        type: 9,
+        required: true
+      },
+      {
+        name: 'owner_role',
+        description: 'Ruolo degli Owner',
+        type: 9,
+        required: true
+      }
+    ]
+  },
+  {
+    name: 'partnership',
+    description: 'Pubblica una partnership (solo Partner Manager)'
+  },
+  {
+    name: 'count',
+    description: 'Vedi il conteggio delle partnership di un utente',
+    options: [
+      {
+        name: 'utente',
+        description: 'Utente di cui controllare il conteggio (default: tu stesso)',
+        type: 6,
+        required: false
+      }
+    ]
+  },
+  {
+    name: 'addpartnership',
+    description: 'Aggiungi partnership manualmente (Owner e Partner Manager)',
+    options: [
+      {
+        name: 'utente',
+        description: 'Utente a cui aggiungere partnership',
+        type: 6,
+        required: true
+      },
+      {
+        name: 'quantita',
+        description: 'Numero di partnership da aggiungere',
+        type: 4,
+        required: true,
+        min_value: 1
+      }
+    ]
+  },
+  {
+    name: 'removepartnership',
+    description: 'Rimuovi partnership manualmente (Owner e Partner Manager)',
+    options: [
+      {
+        name: 'utente',
+        description: 'Utente a cui rimuovere partnership',
+        type: 6,
+        required: true
+      },
+      {
+        name: 'quantita',
+        description: 'Numero di partnership da rimuovere',
+        type: 4,
+        required: true,
+        min_value: 1
+      }
+    ]
+  }
+];
 
 // ========== UTILITY FUNCTIONS ==========
 
@@ -192,6 +279,35 @@ client.on('ready', () => {
   addLog(`Bot loggato come ${client.user.tag}`, 'success');
   botStartTime = Date.now();
   client.user.setActivity('/setup per configurare il bot', { type: 'WATCHING' });
+});
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  if (message.content.toLowerCase() === '!sync') {
+    if (!message.member.permissions.has('Administrator')) {
+      addLog(`${message.author.username} ha tentato !Sync senza permessi`, 'warning');
+      return message.reply('❌ Solo gli Amministratori possono eseguire questo comando.');
+    }
+
+    try {
+      addLog(`Richiesta sincronizzazione globale comandi da ${message.author.username}`, 'info');
+      await client.application.commands.set(SLASH_COMMANDS);
+      addLog('Slash commands sincronizzati globalmente via !Sync', 'success');
+
+      const embed = new EmbedBuilder()
+        .setColor(0x00FF00)
+        .setTitle('✅ Sincronizzazione Completata')
+        .setDescription('I comandi slash sono stati registrati globalmente.\nPotrebbero volerci fino a un\'ora perché Discord li aggiorni ovunque.')
+        .setTimestamp();
+
+      return message.reply({ embeds: [embed] });
+    } catch (error) {
+      addLog(`Errore durante !Sync: ${error.message}`, 'error');
+      totalErrors++;
+      return message.reply(`❌ Errore durante la sincronizzazione: ${error.message}`);
+    }
+  }
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -414,99 +530,24 @@ client.on('interactionCreate', async (interaction) => {
 
 // ========== REGISTRAZIONE SLASH COMMANDS ==========
 client.on('ready', async () => {
-  const guild = client.guilds.cache.first();
-  if (!guild) {
-    addLog('Nessun server trovato. Assicurati che il bot sia nel server.', 'error');
-    return;
-  }
-
-  const commands = [
-    {
-      name: 'setup',
-      description: 'Configura il bot (solo Amministratori)',
-      options: [
-        {
-          name: 'partnership_channel',
-          description: 'Canale dove inviare le partnership',
-          type: 7,
-          required: true
-        },
-        {
-          name: 'partner_manager_role',
-          description: 'Ruolo dei Partner Manager',
-          type: 9,
-          required: true
-        },
-        {
-          name: 'owner_role',
-          description: 'Ruolo degli Owner',
-          type: 9,
-          required: true
-        }
-      ]
-    },
-    {
-      name: 'partnership',
-      description: 'Pubblica una partnership (solo Partner Manager)'
-    },
-    {
-      name: 'count',
-      description: 'Vedi il conteggio delle partnership di un utente',
-      options: [
-        {
-          name: 'utente',
-          description: 'Utente di cui controllare il conteggio (default: tu stesso)',
-          type: 6,
-          required: false
-        }
-      ]
-    },
-    {
-      name: 'addpartnership',
-      description: 'Aggiungi partnership manualmente (Owner e Partner Manager)',
-      options: [
-        {
-          name: 'utente',
-          description: 'Utente a cui aggiungere partnership',
-          type: 6,
-          required: true
-        },
-        {
-          name: 'quantita',
-          description: 'Numero di partnership da aggiungere',
-          type: 4,
-          required: true,
-          min_value: 1
-        }
-      ]
-    },
-    {
-      name: 'removepartnership',
-      description: 'Rimuovi partnership manualmente (Owner e Partner Manager)',
-      options: [
-        {
-          name: 'utente',
-          description: 'Utente a cui rimuovere partnership',
-          type: 6,
-          required: true
-        },
-        {
-          name: 'quantita',
-          description: 'Numero di partnership da rimuovere',
-          type: 4,
-          required: true,
-          min_value: 1
-        }
-      ]
-    }
-  ];
-
   try {
-    await guild.commands.set(commands);
-    addLog('Slash commands registrati con successo', 'success');
+    // Registrazione globale (consigliata per produzione)
+    await client.application.commands.set(SLASH_COMMANDS);
+    addLog('Slash commands registrati globalmente con successo', 'success');
   } catch (error) {
-    addLog(`Errore nella registrazione dei comandi: ${error.message}`, 'error');
+    addLog(`Errore nella registrazione globale dei comandi: ${error.message}`, 'error');
     totalErrors++;
+
+    // Fallback: registrazione nel primo server se quella globale fallisce
+    const guild = client.guilds.cache.first();
+    if (guild) {
+      try {
+        await guild.commands.set(SLASH_COMMANDS);
+        addLog(`Slash commands registrati nel server ${guild.name} (fallback)`, 'warning');
+      } catch (err) {
+        addLog(`Errore nel fallback della registrazione: ${err.message}`, 'error');
+      }
+    }
   }
 });
 
