@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="utf-8"/>
+    <title>Galaxy World | Discord</title>
+    <meta name="description" content="Community Discord italiana: esplora l'universo di Galaxy World. Entra nel server ufficiale."/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="Galaxy World"/>
+    <meta property="og:title" content="Galaxy World | Community Discord italiana"/>
+    <meta property="og:description" content="Community Discord italiana: esplora l'universo di Galaxy World."/>
+    <meta name="theme-color" content="#2d1b4e"/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="css/tw-build.css"/>
+
+    <style>
+        :root {
+            --galaxy-accent: #8b5cf6;
+            --galaxy-accent-hover: #7c3aed;
+            --galaxy-bg: #0f0a1e;
+            --galaxy-glass: rgba(30, 20, 50, 0.7);
+            --galaxy-glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--galaxy-bg);
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 40%);
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            cursor: default;
+        }
+
+        .vc-glass {
+            background: var(--galaxy-glass);
+            border: 1px solid var(--galaxy-glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .vc-nav-shell {
+            transition: all 0.3s ease;
+        }
+
+        .vc-header-pill {
+            transition: all 0.2s ease;
+        }
+
+        .vc-header-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(139, 92, 246, 0.4);
+            background: rgba(40, 30, 70, 0.8);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--galaxy-bg); }
+        ::-webkit-scrollbar-thumb { background: #332a4d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #443a5d; }
+    </style>
+</head>
+<body id="top" class="relative min-h-screen overflow-x-hidden antialiased">
+
+    <header class="fixed inset-x-0 top-0 z-50 px-4 pt-4">
+        <div class="vc-nav-shell vc-glass mx-auto flex max-w-6xl flex-col gap-0 overflow-visible rounded-2xl">
+            <div class="vc-header-bar flex items-center justify-between px-6 py-4">
+                <div class="flex items-center gap-3">
+                    <a class="text-lg font-bold uppercase tracking-widest text-white" href="/">Galaxy World</a>
+                </div>
+                <nav class="flex items-center gap-6">
+                    <a class="text-sm font-medium hover:text-violet-400 transition" href="https://discord.gg/KxhZWFJvDE">Discord</a>
+                    <a class="text-sm font-medium hover:text-violet-400 transition" href="donazioni.html">Donazioni</a>
+                </nav>
+                <div class="hidden sm:block">
+                    <a class="vc-header-pill px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-sm font-bold transition" href="https://discord.gg/KxhZWFJvDE">Entra</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative z-10 pt-32">
+        <section id="intro" class="px-4 py-20 text-center">
+            <div class="vc-glass mx-auto max-w-4xl rounded-[3rem] p-12 shadow-2xl">
+                <p class="text-violet-400 font-medium tracking-widest uppercase mb-4">Benvenuto su</p>
+                <h1 class="text-6xl md:text-8xl font-black mb-6 tracking-tighter text-white">Galaxy World</h1>
+                <p class="text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+                    L'universo definitivo per la community italiana di Discord. <br class="hidden md:block">Un luogo dove l'esplorazione e il divertimento non finiscono mai.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a class="px-8 py-4 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl font-bold transition transform hover:scale-105 shadow-lg shadow-violet-900/20" href="https://discord.gg/KxhZWFJvDE">
+                        <i class="fa-brands fa-discord mr-2"></i> Entra nel Server
+                    </a>
+                    <a class="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl font-bold transition" href="donazioni.html">
+                        Supportaci
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="max-w-6xl mx-auto px-4 py-20">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="vc-glass feature-card p-10 rounded-3xl text-center">
+                    <div class="w-16 h-16 bg-violet-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fa-solid fa-chart-line text-3xl text-violet-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Crescita</h3>
+                    <p class="text-slate-400 leading-relaxed">Una community in continua espansione con nuovi membri e opportunità ogni giorno.</p>
+                </div>
+                <div class="vc-glass feature-card p-10 rounded-3xl text-center">
+                    <div class="w-16 h-16 bg-violet-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fa-solid fa-wand-magic-sparkles text-3xl text-violet-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Eventi</h3>
+                    <p class="text-slate-400 leading-relaxed">Giveaway e contest regolari per premiare la partecipazione dei nostri membri più attivi.</p>
+                </div>
+                <div class="vc-glass feature-card p-10 rounded-3xl text-center">
+                    <div class="w-16 h-16 bg-violet-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fa-solid fa-bolt text-3xl text-violet-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Funzioni</h3>
+                    <p class="text-slate-400 leading-relaxed">Bot esclusivi e sistemi di intrattenimento unici progettati per il panorama italiano.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="px-4 py-12">
+        <div class="max-w-6xl mx-auto vc-glass rounded-3xl p-10 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div>
+                <h2 class="text-2xl font-bold mb-2 text-white">Galaxy World</h2>
+                <p class="text-slate-500 text-sm">© 2024 Tutti i diritti riservati.</p>
+            </div>
+            <div class="flex gap-8">
+                <a href="https://discord.gg/KxhZWFJvDE" class="text-2xl text-slate-400 hover:text-violet-400 transition" title="Discord"><i class="fa-brands fa-discord"></i></a>
+                <a href="https://paypal.me/giovannipasulo" class="text-2xl text-slate-400 hover:text-violet-400 transition" title="PayPal"><i class="fa-brands fa-paypal"></i></a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

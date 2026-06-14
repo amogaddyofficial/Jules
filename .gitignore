@@ -1,3 +1,56 @@
+# Ignore environment variables
 .env
-node_modules
-partnership_counts.json
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+npm-debug.log
+npm-error.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+*.sublime-workspace
+.project
+.classpath
+
+# Build and dist files
+dist/
+build/
+out/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Logs
+logs/
+*.log
+
+# Database backups
+*.backup
+*.bak
+
+# Mac
+.AppleDouble
+.LSOverride
